@@ -1,9 +1,9 @@
 # Envoy filter example
 
-This project demonstrates the linking of additional HTTP filters with the Envoy binary.
-A new filter `http-to-kafka-filter` which adds a HTTP header is introduced.
-Integration tests demonstrating the filter's end-to-end behavior are
-also provided.
+This project implements a hybrid HTTP-to-Kafka proxy as a custom filter for Envoy Proxy. 
+The solution leverages a unique architecture where high-performance C++ network processing in Envoy
+is combined with safe Kafka client logic written in Rust, 
+bridged via a Foreign Function Interface (FFI). The filter translates HTTP requests into Kafka messages and back.
 
 ## Building
 
@@ -22,34 +22,21 @@ To run the `http-to-kafka-filter` integration test:
 
 See the [network filter example](../README.md#how-it-works).
 
-## How to write and use an HTTP filter
+## Filter example
 
 - The main task is to write a class that implements the interface
  [`Envoy::Http::StreamDecoderFilter`][StreamDecoderFilter] as in
- [`http_filter.h`](http_filter.h) and [`http_filter.cc`](http_filter.cc),
+ [`http_to_kafka_filter.h`](http_to_kafka_filter.h) and [`http_to_kafka_filter.cc`](http_to_kafka_filter.cc),
  which contains functions that handle http headers, data, and trailers.
- Note that this is an example of decoder filters, 
- and to write encoder filters or decoder/encoder filters
- you need to implement 
- [`Envoy::Http::StreamEncoderFilter`][StreamEncoderFilter] or
- [`Envoy::Http::StreamFilter`][StreamFilter] instead.
-- You also need a class that implements 
- `Envoy::Server::Configuration::NamedHttpFilterConfigFactory`
- to enable the Envoy binary to find your filter,
- as in [`http_filter_config.cc`](http_filter_config.cc).
- It should be linked to the Envoy binary by modifying [`BUILD`][BUILD] file.
-- Finally, you need to modify the Envoy config file to add your filter to the
- filter chain for a particular HTTP route configuration. For instance, if you
- wanted to change [the front-proxy example][front-envoy.yaml] to chain our
- `sample` filter, you'd need to modify its config to look like
 
 ```yaml
 http_filters:
-- name: sample          # before envoy.router because order matters!
+- name: http_to_kafka
   typed_config:
-    "@type": type.googleapis.com/sample.Decoder
-    key: via
-    val: sample-filter
+    "@type": type.googleapis.com/kafkafilter.HttpToKafka
+    kafka_host: localhost
+    kafka_port: 9092
+    max_payload_bytes: 1048576
 - name: envoy.router
   typed_config: {}
 ```
