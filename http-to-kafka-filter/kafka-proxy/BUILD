@@ -4,7 +4,7 @@ package(default_visibility = ["//visibility:public"])
 
 rust_static_library(
     name = "kafka_proxy_rust",
-    srcs = ["src/lib.rs"],
+    srcs = ["src/lib.rs", "src/consumer.rs", "src/producer.rs"],
     crate_root = "src/lib.rs",
     edition = "2021",
 )
