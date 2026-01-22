@@ -1,9 +1,7 @@
 #include <string>
 
-#include "http_to_kafka_filter.h"
-
+#include "filter.h"
 #include "envoy/server/filter_config.h"
-
 #include <cstdint>
 
 extern "C" uint64_t set_config(const uint8_t* bootstraps, uint64_t bootstraps_len);
@@ -17,6 +15,8 @@ extern "C" void free_buffer(uint8_t* in, uint64_t in_len);
 
 namespace Envoy {
 namespace Http {
+
+namespace kafkafilter = envoy::extensions::filters::http::http_to_kafka_filter::v3;
 
 HttpToKafkaDecoderFilterConfig::HttpToKafkaDecoderFilterConfig(const kafkafilter::HttpToKafka& proto_config)
     : kafka_host_(proto_config.kafka_host()),
@@ -32,8 +32,6 @@ HttpToKafkaDecoderFilterConfig::HttpToKafkaDecoderFilterConfig(const kafkafilter
 
 HttpToKafkaDecoderFilter::HttpToKafkaDecoderFilter(HttpToKafkaDecoderFilterConfigSharedPtr config)
     : config_(config) {}
-
-HttpToKafkaDecoderFilter::~HttpToKafkaDecoderFilter() {}
 
 void HttpToKafkaDecoderFilter::onDestroy() {}
 
@@ -55,9 +53,9 @@ FilterHeadersStatus HttpToKafkaDecoderFilter::decodeHeaders(RequestHeaderMap& he
   std::string action = std::string(action_vals[0]->value().getStringView());
   absl::AsciiStrToLower(&action);
 
-  if (action == "produce") {
+  if (action == "produce" || action == "producer") {
     mode_ = Mode::Produce;
-  } else if (action == "consume") {
+  } else if (action == "consume" || action == "consumer") {
     mode_ = Mode::Consume;
   } else {
     mode_ = Mode::None;
@@ -171,7 +169,27 @@ FilterDataStatus HttpToKafkaDecoderFilter::decodeData(Buffer::Instance& data, bo
 
 void HttpToKafkaDecoderFilter::setDecoderFilterCallbacks(StreamDecoderFilterCallbacks& callbacks) {
   decoder_callbacks_ = &callbacks;
+  dispatcher_ = &callbacks.dispatcher();
 }
+
+// void KafkaStreamManager::startTopic(const std::string& topic) {
+//   if (auto search = topics_.find(topic); search != topics_.end()) {
+//     return;
+//   }
+//   auto& t = topics_[topic];
+//   t.running = true;
+
+//   t.consumer_thread = std::thread([this, topic]() {
+//     while (topics_[topic].running) {
+//       std::string msg = kafkaConsume(topic);
+
+//       std::lock_guard<std::mutex> lock(mutex_);
+//       for (auto& [id, cb] : topics_[topic].clients) {
+//         cb(msg); // fan-out
+//       }
+//     }
+//   });
+// }
 
 } // namespace Http
 } // namespace Envoy

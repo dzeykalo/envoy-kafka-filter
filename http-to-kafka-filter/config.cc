@@ -3,13 +3,15 @@
 #include "envoy/registry/registry.h"
 #include "envoy/server/filter_config.h"
 
-#include "http-to-kafka-filter/http_to_kafka_filter.pb.h"
-#include "http-to-kafka-filter/http_to_kafka_filter.pb.validate.h"
-#include "http_to_kafka_filter.h"
+#include "contrib/envoy/extensions/filters/http/http_to_kafka_filter/v3/http_to_kafka_filter.pb.h"
+#include "contrib/envoy/extensions/filters/http/http_to_kafka_filter/v3/http_to_kafka_filter.pb.validate.h"
+#include "filter.h"
 
 namespace Envoy {
 namespace Server {
 namespace Configuration {
+
+namespace kafkafilter = envoy::extensions::filters::http::http_to_kafka_filter::v3;
 
 class HttpSampleToKafkaFilterConfigFactory : public NamedHttpFilterConfigFactory {
 public:
