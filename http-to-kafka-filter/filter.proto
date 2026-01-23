@@ -5,13 +5,12 @@ package kafkafilter;
 import "validate/validate.proto";
 
 message HttpToKafka {
-  string kafka_host = 1 [(validate.rules).string.min_bytes = 1];
-  uint32 kafka_port = 2 [(validate.rules).uint32.gte = 1, (validate.rules).uint32.lte = 65535];
+  string bootstrap_servers = 1 [(validate.rules).string.min_bytes = 4];
 
   // If empty -> defaults are used.
-  string action_header = 3; // default: "x-kafka-action"
-  string topic_header  = 4; // default: "x-kafka-topic"
+  string action_header = 2; // default: "x-kafka-action"
+  string topic_header  = 3; // default: "x-kafka-topic"
 
   // 0 = unlimited (filter-level)
-  uint32 max_payload_bytes = 5;
+  uint32 max_payload_bytes = 4;
 }
