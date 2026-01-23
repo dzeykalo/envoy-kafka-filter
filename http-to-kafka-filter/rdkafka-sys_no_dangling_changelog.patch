@@ -1,0 +1,43 @@
+diff --git a/build.rs b/build.rs
+--- a/build.rs
++++ b/build.rs
+@@ -6,6 +6,29 @@ use std::fs;
+ use std::path::{Path, PathBuf};
+ use std::process::{self, Command};
+ 
++fn remove_symlinks_recursively(dir: &Path) {
++    let rd = match std::fs::read_dir(dir) {
++        Ok(rd) => rd,
++        Err(_) => return,
++    };
++    for entry in rd.flatten() {
++        let p = entry.path();
++        let md = match std::fs::symlink_metadata(&p) {
++            Ok(md) => md,
++            Err(_) => continue,
++        };
++        let ft = md.file_type();
++        if ft.is_symlink() {
++            // Remove the symlink itself (even if it points to a directory).
++            let _ = std::fs::remove_file(&p);
++            continue;
++        }
++        if ft.is_dir() {
++            remove_symlinks_recursively(&p);
++        }
++    }
++}
++
+ fn run_command_or_fail<P, S>(dir: &str, cmd: P, args: &[S])
+ where
+     P: AsRef<Path>,
+@@ -192,6 +215,9 @@ fn build_librdkafka() {
+         // https://github.com/edenhill/mklove/issues/17
+         println!("Cloning librdkafka");
+         run_command_or_fail(".", "cp", &["-a", "librdkafka/.", &out_dir]);
++        
++        // Bazel disallows dangling/absolute symlinks in declared output trees.
++        remove_symlinks_recursively(Path::new(&out_dir));
+     }
+ 
+     println!("Configuring librdkafka");
