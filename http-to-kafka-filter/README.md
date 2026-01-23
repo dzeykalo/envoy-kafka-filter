@@ -1,4 +1,4 @@
-# Envoy filter example
+# Http to Kafka filter
 
 This project implements a hybrid HTTP-to-Kafka proxy as a custom filter for Envoy Proxy. 
 The solution leverages a unique architecture where high-performance C++ network processing in Envoy
