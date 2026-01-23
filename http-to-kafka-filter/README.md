@@ -14,9 +14,9 @@ To build the Envoy static binary:
 
 ## Testing
 
-To run the `http-to-kafka-filter` integration test:
-
-`bazel test //http-to-kafka-filter:http_to_kafka_filter_integration_test`
+`.bazel-bin/http-to-kafka-filter/envoy -c ./http-to-kafka-filter/http-to-kafka-filter-demo.yaml`
+`curl -N -H "x-kafka-action: consume" -H "x-kafka-topic: topic0" http://127.0.0.1:10000`
+`curl -v -X POST http://127.0.0.1:10000 -H "x-kafka-action: producer" -H "x-kafka-topic: topic0" -d '{"message": "our very important data"}'`
 
 ## How it works
 
@@ -29,13 +29,15 @@ See the [network filter example](../README.md#how-it-works).
  [`http_to_kafka_filter.h`](http_to_kafka_filter.h) and [`http_to_kafka_filter.cc`](http_to_kafka_filter.cc),
  which contains functions that handle http headers, data, and trailers.
 
+
 ```yaml
 http_filters:
-- name: http_to_kafka
+- name: kafkafilter
   typed_config:
     "@type": type.googleapis.com/kafkafilter.HttpToKafka
-    kafka_host: localhost
-    kafka_port: 9092
+    bootstrap_servers: "localhost:9092"
+    action_header: x-kafka-action
+    topic_header: x-kafka-topic
     max_payload_bytes: 1048576
 - name: envoy.router
   typed_config: {}
