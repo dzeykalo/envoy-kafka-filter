@@ -13,10 +13,11 @@ To build the Envoy static binary:
 2. `bazel build //http-to-kafka-filter:envoy`
 
 ## Testing
-
-`.bazel-bin/http-to-kafka-filter/envoy -c ./http-to-kafka-filter/http-to-kafka-filter-demo.yaml`
-`curl -N -H "x-kafka-action: consume" -H "x-kafka-topic: topic0" http://127.0.0.1:10000`
-`curl -v -X POST http://127.0.0.1:10000 -H "x-kafka-action: producer" -H "x-kafka-topic: topic0" -d '{"message": "our very important data"}'`
+```sh
+.bazel-bin/http-to-kafka-filter/envoy -c ./http-to-kafka-filter/http-to-kafka-filter-demo.yaml
+curl -N -H "x-kafka-action: consume" -H "x-kafka-topic: topic0" http://127.0.0.1:10000
+curl -v -X POST http://127.0.0.1:10000 -H "x-kafka-action: producer" -H "x-kafka-topic: topic0" -d '{"message": "our very important data"}'
+```
 
 ## How it works
 
